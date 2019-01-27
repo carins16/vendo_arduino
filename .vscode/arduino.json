@@ -1,5 +1,6 @@
 {
     "port": "COM6",
     "board": "arduino:avr:uno",
-    "sketch": "arduino_mega\\arduino_mega.ino"
+    "sketch": "arduino_mega\\arduino_mega.ino",
+    "output": "../ArduinoOutput"
 }

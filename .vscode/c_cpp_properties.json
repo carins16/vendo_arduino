@@ -11,6 +11,7 @@
                     "C:/Program Files (x86)/Arduino/libraries",
                     "C:/Users/Acer/Documents/Arduino/libraries/",
                     "C:/Users/Acer/Documents/Arduino/hardware/",
+                    "C:/Users/acer/AppData/Local/Arduino15",
                     "${workspaceRoot}"
                 ],
                 "limitSymbolsToIncludedHeaders": true,

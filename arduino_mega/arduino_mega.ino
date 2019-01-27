@@ -24,28 +24,28 @@ void setup(){
 
 // items details that will be used
 int itemId;
-const char* itemName;
+String itemName;
 int itemPrice;
 int itemQty;
 
- 
+
 void loop(){
-  
+
   // change this code into numkeys
   if (digitalRead(2) == LOW) {
     lcd.clear();
-    request_items(2);
+    request_items(1);
     delay(200);
   } else if (digitalRead(3) == LOW) {
     lcd.clear();
-    request_items(3);
+    request_items(2);
     delay(200);
   } else if (digitalRead(4) == LOW) {
     lcd.clear();
-    request_items(4);
+    request_items(3);
     delay(200);
   } else if (digitalRead(5) == LOW) {
-    request_items(5);
+    purchase_items();
     delay(200);
   }
 
@@ -56,19 +56,18 @@ void loop(){
 void display_items() {
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("ITEM: " + (String)itemName); // convert char* into (String)
+  lcd.print("ITEM: " + itemName);
   lcd.setCursor(0, 1);
   lcd.print("PRICE: " + (String)itemPrice); // convert int into (String)
 }
 
-void request_items(int id) {
-  const size_t capacity = JSON_OBJECT_SIZE(2);
-  DynamicJsonBuffer jsonBuffer(capacity);
+void request_items(int itemId) {
+  DynamicJsonBuffer jsonBuffer;
 
   JsonObject &root = jsonBuffer.createObject();
   // data that will be send
-  root["id"] = id;
   root["type"] = "REQUEST_ITEM";
+  root["id"] = itemId;
 
   root.printTo(Middleware); // send data to nodemcu
   root.prettyPrintTo(Serial); // preview request in serial
@@ -76,18 +75,31 @@ void request_items(int id) {
 
 void get_items() {
   if (Middleware.available() > 0) {
-    const size_t capacity = JSON_OBJECT_SIZE(4) + 50;
-    DynamicJsonBuffer jsonBuffer(capacity);
+    DynamicJsonBuffer jsonBuffer;
 
     JsonObject &root = jsonBuffer.parseObject(Middleware);
 
     // store recieved data to global variables
     itemId    = root["id"];
-    itemName  = root["name"];
+    itemName  = root["name"].as<String>();
     itemPrice = root["price"];
     itemQty   = root["qty"];
 
+    display_items();            // display item info in lcd
     root.prettyPrintTo(Serial); // preview received data in serial
-    display_items(); // display item info in lcd
   }
+}
+
+void purchase_items() {
+  DynamicJsonBuffer jsonBuffer;
+
+  JsonObject &root = jsonBuffer.createObject();
+  // get item to be purchase
+  root["type"] = "PURCHASE_ITEM";
+  root["id"] = itemId;
+  root["name"] = itemName;
+  root["price"] = itemPrice;
+
+  root.printTo(Middleware);   // send data to nodemcu
+  root.prettyPrintTo(Serial); // preview data to be send in serial
 }
