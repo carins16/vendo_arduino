@@ -3,7 +3,7 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
-// hello world add somehting
+
 SoftwareSerial Middleware(13,12); //(RX, TX) serial communication between arduino & nodemcu
 // initialize the library with the numbers of the interface pins
 LiquidCrystal_I2C lcd(0x27, 16, 2); // set the LCD address to 0x27 for a 16 chars and 2 line display
