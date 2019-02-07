@@ -60,7 +60,7 @@ void print_time()
   }
   /* Format the time and date and insert into the temporary buffer */
   snprintf(buf, sizeof(buf), "%s %04d-%02d-%02d %02d:%02d:%02d", day, t.yr, t.mon, t.date, t.hr, t.min, t.sec);
-  //FORMAT YYYY/MM/DD 24:00:00
+  //FORMAT YYYY/MM/DD 24:00:00 format
   snprintf(buf, sizeof(buf), "%s %04d-%02d-%02d %02d:%02d:%02d", day, t.yr, t.mon, t.date, t.hr, t.min, t.sec);
   /* Print the formatted string to serial so we can see the time */
   Serial.println(buf);
