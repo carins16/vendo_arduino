@@ -52,7 +52,7 @@ void print_time()
     break;
   }
   /* Format the time and date and insert into the temporary buffer */
-  snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02u:%02u:%02u", t.yr, t.mon, t.date, t.hr, t.min, t.sec);
+  snprintf(buf, sizeof(buf), "%04u-%02u-%02u %02u:%02u:%02u", t.yr, t.mon, t.date, t.hr, t.min, t.sec);
   /* Print the formatted string to serial so we can see the time */
   Serial.println(buf);
   lcd.setCursor(2, 0);
@@ -77,12 +77,12 @@ void setup()
 {
   Serial.begin(9600);
   lcd.begin(20, 4);
-  rtc.write_protect(true);
+  rtc.write_protect(false);
   rtc.halt(false);
   lcd.init();      //initialize the lcd
   lcd.backlight(); //open the backlight
  // snprintf(buf, sizeof(buf), "%s %04d-%02d-%02d %02u:%02u:%02u", day, t.yr, t.mon, t.date, t.hr, t.min, t.sec);
-  Time t(2019, 2, 11, 3,14,30, 0); //initialize the time
+  Time t(2019, 2, 13, 23,59,50, 0); //initialize the time
   /* Set the time and date on the chip */
   rtc.time(t);
 }
