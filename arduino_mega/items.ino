@@ -3,7 +3,7 @@ void request_items(int itemId) {
     JsonObject &root = jsonBuffer.createObject();
     // data that will be send
     root["type"]    = "REQUEST_ITEM";
-    root["id"]      = itemId;
+    root["id"]      = "D" + (String)itemId;
 
     root.printTo(Middleware);   // send data to nodemcu
     root.prettyPrintTo(Serial); // preview request in serial
