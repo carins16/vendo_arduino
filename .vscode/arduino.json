@@ -1,6 +1,0 @@
-{
-    "board": "arduino:avr:uno",
-    "output": "../build",
-    "sketch": "arduino_mega\\arduino_mega.ino",
-    "port": "COM3"
-}
