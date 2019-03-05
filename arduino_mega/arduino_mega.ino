@@ -29,10 +29,11 @@ byte colPins[COLS] = { 7, 6, 5, 4}; //connect to the column pinouts of the keypa
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
 struct {
-  int id;
+  String id;
   String name;
   int price;
   int qty;
+  String date;
   bool selected = false;
 } Items;
 
@@ -61,7 +62,7 @@ void Keypad_Function() {
         if (Items.qty > 0) {
           purchase_items();
         } else {
-          Serial.println("Item No. " + (String)Items.id + " is out of stock!");
+          Serial.println("Item No. " + Items.id + " is out of stock!");
         }
       } else {
         Serial.println("Please select an item!");

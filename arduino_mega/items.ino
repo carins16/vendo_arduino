@@ -16,7 +16,7 @@ void get_items() {
 
         if (root.success()) {
             // store recieved data to global variables
-            Items.id    = root["id"];
+            Items.id    = root["id"].as<String>();
             Items.name  = root["name"].as<String>();
             Items.price = root["price"];
             Items.qty   = root["qty"];
@@ -36,6 +36,7 @@ void purchase_items() {
     root["id"]      = Items.id;
     root["name"]    = Items.name;
     root["price"]   = Items.price;
+    root["date"]    = Items.date;
 
     clear_items();
 
@@ -44,9 +45,10 @@ void purchase_items() {
 }
 
 void clear_items() {
-    Items.id        = 0;
+    Items.id        = "";
     Items.name      = "";
     Items.price     = 0;
     Items.qty       = 0;
+    Items.date      = "";
     Items.selected  = false;
 }
