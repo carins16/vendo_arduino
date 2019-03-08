@@ -1,5 +1,6 @@
 ///----------------Libraries----------------//
 #include <stdio.h>
+#include <Servo.h>
 #include <string.h>
 #include <DS1302.h>
 #include <SoftwareSerial.h>
@@ -12,9 +13,10 @@
 ///----------------Pin initialize Library type----------------//
 SoftwareSerial Middleware(13, 12);  //(RX, TX) serial communication between arduino & nodemcu
 LiquidCrystal_I2C lcd(0x27, 20, 4); // set the LCD address to 0x27 for a 16 chars and 2 line display
-
+Servo Servo1, Servo2, Servo3, Servo4, Servo5, Servo6, Servo7, Servo8, Servo9;
 
 ///----------------data variables----------------//
+int servoPin = 9;
 int coin = 0;
 int balance =0;
 char key;
@@ -45,7 +47,7 @@ int numdata[7] = {0}, j = 0, mark = 0;
 #define SERVOMAX  600 // this is the 'maximum' pulse length count (out of 4096)
 
 ///----------------Pin initialize Native type----------------//
-int coin_acceptor = 52;
+int coin_acceptor = 2;
 byte rowPins[ROWS] = {22, 24, 26, 28};
 byte colPins[COLS] = {30, 32, 34, 36};// keypad pins
 
@@ -63,50 +65,81 @@ DS1302 rtc(RST_PIN, SDA_PIN, SCL_PIN); //create a variable type of DS1302
 void setup() {///////////////SETUP
   Serial.begin(9600);
   Middleware.begin(9600);
-  Time t(2019, 5, 3, 7, 51, 0, 0); //initialize the time
+  rtc.write_protect(true);
+  rtc.halt(false);
+  Time t(2019, 3, 7, 19, 37, 0, 0); //initialize the time
   rtc.time(t); /* Set the time and date on the chip */
   pinMode(coin_acceptor, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(coin_acceptor),CoinAcceptor, RISING);
   lcd.begin(20, 4);
   lcd.init();
   lcd.backlight();
   pwm.begin();
   pwm.setPWMFreq(60);
+  Servo1.attach(9);
+  Servo2.attach(8);
   delay(10);
+
+  display_default();
 }
 
 void loop() { /// RUN ///
-    RunCodeInMillis();
+
+  RunCodeInMillis();
 }
 
+void spinServo(Servo SlotNumber){
+
+  SlotNumber.write(0); // rotate
+  delay(2000);
+  SlotNumber.write(90); // stop
+}
 
 void servoControl(){
 
-if (Items.selected) {
-
-}else{
-  Serial.println("Please select an item!");
-}
-  
-  if (Items.qty > 0) {
+  if (Items.selected) {
+    if (Items.qty > 0)
+    {
       if (balance >= Items.price)
       {
-        balance -= Items.price;
+        balance = balance - Items.price;
 
-        for (int degree = 0; degree <= 180; degree += 1) //adjust rotation here
-        {
-          pwm.setPWM(slot, 0, map(180, 0, 180, SERVOMIN, SERVOMAX));
-          delayMicroseconds(500);
-        }
-        pwm.setPWM(slot, 0, 0); //stop
+          switch (slot)
+          {
+            case 0:
+              spinServo(Servo1);
+              break;
+            case 1:
+              spinServo(Servo2);
+              break;
+            default:
+              break;
+          }
+        
+        // for (int degree = 0; degree <= 180; degree += 1) //adjust rotation here
+        // {
+        //   pwm.setPWM(slot, 0, map(180, 0, 180, SERVOMIN, SERVOMAX));
+        //   delayMicroseconds(500);
+        // }
+        //pwm.setPWM(slot, 0, 0); //stop
+        print_time();
         purchase_items();
       }
-      else{
+      else
+      {
+        balance = balance;
         display_items("Not Enough Balance");
       }
-  }else{
+    }
+    else
+    {
       display_items("Item Unavailable");
       Serial.println("Item No. " + Items.id + " is out of stock!");
+    }
+  }else{
+    Serial.println("Please select an item!");
   }
+    
   
 }
 
@@ -134,18 +167,19 @@ void remoteControl(char keypress){
       case '8' : display_items("Nothing in Slot 8"); break;
       case '9' : display_items("Nothing in Slot 9"); break;
       case 'A' : display_items("A"); break;
-      case 'B' : display_items("Buying..."); servoControl(); break;
-      case 'C' : display_items("C"); print_time(); break;
+      case 'B' : display_items("Buying"); servoControl(); break;
+      case 'C' : display_items("C"); break;
       case 'D' : display_items("D"); break;  
       default : keypress = keypress; Serial.println(slot);
      }
 }
 void display_items(String msg){
+
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("BAL: " + (String)balance);
-  lcd.setCursor(12, 0);
-  lcd.print("LEFT: " + (String)Items.qty);
+  //lcd.setCursor(12, 0);
+  //lcd.print("LEFT: " + (String)Items.qty);
   lcd.setCursor(2, 1);
   lcd.print("ITEM: " + Items.name);
   //lcd.print("ITEM: SLURPEE");
@@ -155,6 +189,19 @@ void display_items(String msg){
   lcd.setCursor(0, 3);
   lcd.print(msg);
 
+}
+
+void display_default(){
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("WELCOME TO SARISARI");
+  lcd.setCursor(0, 1);
+  lcd.print("VENDING MACHINE");
+  lcd.setCursor(0, 2);
+  lcd.print("SELECT AN ITEM(1-6)");
+  lcd.setCursor(0, 3);
+  lcd.print("PRESS 'B' TO BUY");
 }
 
 void request_items(int itemId) {
@@ -188,6 +235,7 @@ void get_items() {
 }
 
 void purchase_items() {
+
     DynamicJsonBuffer jsonBuffer;
     JsonObject &root = jsonBuffer.createObject();
     // get item to be purchase
@@ -198,7 +246,7 @@ void purchase_items() {
     root["date"]  = Items.date;
 
     clear_items();
-
+    //display_items("Buying");
     root.printTo(Middleware);   // send data to nodemcu
     root.prettyPrintTo(Serial); // preview data to be send in serial
 }
@@ -216,22 +264,14 @@ void print_time()
   /* Get the current time and date from the chip */
   Time t = rtc.time();
   snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02u:%02u:%02u", t.yr, t.mon, t.date, t.hr, t.min, t.sec);
-  
-  Items.date = (String)buf;
+    
+    if(buf != ""){
+      Items.date = (String)buf;
+    }else{
+      Items.date = Items.date;
+    }
+    
   Serial.println(Items.date);
-
-  lcd.setCursor(5, 3);
-  lcd.print(t.yr);
-  lcd.print("-");
-  lcd.print(t.mon / 10);lcd.print(t.mon % 10);
-  lcd.print("-");
-  lcd.print(t.date / 10);lcd.print(t.date % 10);
-  lcd.setCursor(5, 3);
-  lcd.print(t.hr);
-  lcd.print(":");
-  lcd.print(t.min / 10);lcd.print(t.min % 10);
-  lcd.print(":");
-  lcd.print(t.sec / 10);lcd.print(t.sec % 10);
 }
 
 void realTimeClock(){
@@ -270,37 +310,38 @@ void realTimeClock(){
 }
 
 void CoinAcceptor(){
-  
+
   if (digitalRead(coin_acceptor) == LOW){
-    coin++;
-    //Serial.println(digitalRead(coin_acceptor));
-    //Serial.println(" : ");
-    //Serial.println(coin);
+    balance++;
     display_items("Coin inserted beep");
-  }else{
-    coin = coin;
   }
-  balance = coin;
+
 }
 
 void RunCodeInMillis(){//// Run your codes here :)
   static unsigned long timer = millis();
-  static int deciSeconds = 0;
+  static int deciSeconds1 = 0, deciSeconds2 = 0;
   if (millis() - timer >= 100){
     timer += 50;
-    deciSeconds++; // 100 milliSeconds is equal to 1 deciSecond
-    
-    if (deciSeconds == 24){// Reset to 0 after counting for 1000 seconds.
+    deciSeconds1++; // 100 milliSeconds is equal to 1 deciSecond
+    deciSeconds2++;
+
+    if (deciSeconds1 == 24){// Reset to 0 after counting for 1000 seconds.
       realTimeClock();
       //Serial.println(slot);
-      deciSeconds = 0; //RESET CONDITIONS                 //lcd.clear();
+      deciSeconds1 = 0; //RESET CONDITIONS                 //lcd.clear();
     }                  //RUN FUNCTIONS HERE
   
     //INITIALIZING FUNCTION HERE
+
+    pwm.setPWM(0, 0, map(180, 0, 180, SERVOMIN, SERVOMAX));
     get_items();
     CoinAcceptor();
     Keypad_Function_simple();
-  }
 
+
+      
+    
+  }
 
 }
